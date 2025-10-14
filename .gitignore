@@ -1,0 +1,6 @@
+.vs/
+*.vsidx
+*.suo
+*.user
+Builds/VisualStudio2022/x64/
+Builds/VisualStudio2022/Debug/
