@@ -1,6 +1,7 @@
 
 #include "PlayerGUI.h"
 
+
 PlayerGUI::PlayerGUI(PlayerAudio& player) : audioPlayer(player)
 {
     addAndMakeVisible(playButton);
@@ -11,6 +12,7 @@ PlayerGUI::PlayerGUI(PlayerAudio& player) : audioPlayer(player)
     addAndMakeVisible(muteButton);
     addAndMakeVisible(goStartButton);
     addAndMakeVisible(goEndButton);
+    addAndMakeVisible(repeatingButton);
 
     playButton.addListener(this);
     stopButton.addListener(this);
@@ -20,11 +22,14 @@ PlayerGUI::PlayerGUI(PlayerAudio& player) : audioPlayer(player)
     muteButton.addListener(this);
     goStartButton.addListener(this);
     goEndButton.addListener(this);
+    repeatingButton.addListener(this);
 
     volumeSlider.setRange(0.0, 1.0);
     volumeSlider.setValue(0.5);
     speedSlider.setRange(0.5, 2.0);
     speedSlider.setValue(1.0);
+
+    
 }
 
 PlayerGUI::~PlayerGUI() {}
@@ -58,6 +63,8 @@ void PlayerGUI::resized()
     goStartButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
     buttonArea.removeFromLeft(gap); 
     goEndButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
+    buttonArea.removeFromLeft(gap);
+    repeatingButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
     buttonArea.removeFromLeft(gap);
 
     volumeSlider.setBounds(area.removeFromTop(40));
@@ -93,6 +100,10 @@ void PlayerGUI::buttonClicked(juce::Button* button)
     else if (button == &goEndButton) {
         audioPlayer.goEnd();
     }
+    else if (button == &repeatingButton) {
+        audioPlayer.repeat(repeatingButton.getToggleState());
+    }
+      
 }
 
 void PlayerGUI::sliderValueChanged(juce::Slider* slider)
@@ -102,6 +113,7 @@ void PlayerGUI::sliderValueChanged(juce::Slider* slider)
     else if (slider == &speedSlider)
         audioPlayer.setSpeed(slider->getValue());
 }
+
 
 
 

@@ -17,7 +17,6 @@ public:
 
     void buttonClicked(juce::Button* button) override;
     void sliderValueChanged(juce::Slider* slider) override;
-
 private:
     PlayerAudio& audioPlayer;
 
@@ -27,6 +26,7 @@ private:
     juce::TextButton muteButton{ "mute" };
     juce::TextButton goStartButton{ "go start" };
     juce::TextButton goEndButton{ "go end" };
+    juce::ToggleButton repeatingButton{ "repeat" };
 
 
     juce::Slider volumeSlider;
