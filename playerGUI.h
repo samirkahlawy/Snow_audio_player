@@ -6,7 +6,8 @@
 
 class PlayerGUI : public juce::Component,
     public juce::Button::Listener,
-    public juce::Slider::Listener
+    public juce::Slider::Listener,
+    public juce::Timer
 {
 public:
     PlayerGUI(PlayerAudio& player);
@@ -17,6 +18,9 @@ public:
 
     void buttonClicked(juce::Button* button) override;
     void sliderValueChanged(juce::Slider* slider) override;
+   
+    void timerCallback() override;
+
 private:
     PlayerAudio& audioPlayer;
 
@@ -28,7 +32,7 @@ private:
     juce::TextButton goEndButton{ "go end" };
     juce::ToggleButton repeatingButton{ "repeat" };
 
-
+    juce::Slider positionSlider;
     juce::Slider volumeSlider;
     juce::Slider speedSlider;
 

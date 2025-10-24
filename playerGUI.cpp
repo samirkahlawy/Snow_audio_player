@@ -13,6 +13,7 @@ PlayerGUI::PlayerGUI(PlayerAudio& player) : audioPlayer(player)
     addAndMakeVisible(goStartButton);
     addAndMakeVisible(goEndButton);
     addAndMakeVisible(repeatingButton);
+    addAndMakeVisible(positionSlider);
 
     playButton.addListener(this);
     stopButton.addListener(this);
@@ -23,16 +24,29 @@ PlayerGUI::PlayerGUI(PlayerAudio& player) : audioPlayer(player)
     goStartButton.addListener(this);
     goEndButton.addListener(this);
     repeatingButton.addListener(this);
+    positionSlider.addListener(this);
 
     volumeSlider.setRange(0.0, 1.0);
     volumeSlider.setValue(0.5);
     speedSlider.setRange(0.5, 2.0);
     speedSlider.setValue(1.0);
 
-    
+
+    startTimer(10);
 }
 
 PlayerGUI::~PlayerGUI() {}
+
+
+void PlayerGUI::timerCallback()
+{
+    if (audioPlayer.isLouded() && audioPlayer.isPlaying())
+    {
+        double currentPos = audioPlayer.getPosition();
+        positionSlider.setValue(currentPos, juce::dontSendNotification);
+    }
+}
+
 
 void PlayerGUI::paint(juce::Graphics& g)
 {
@@ -70,6 +84,8 @@ void PlayerGUI::resized()
     volumeSlider.setBounds(area.removeFromTop(40));
     area.removeFromTop(10); 
     speedSlider.setBounds(area.removeFromTop(40));
+    area.removeFromTop(10);
+    positionSlider.setBounds(area.removeFromTop(40));
     
 }
 
@@ -85,9 +101,16 @@ void PlayerGUI::buttonClicked(juce::Button* button)
             {
                 juce::File file = fc.getResult();
                 if (file.existsAsFile())
+                {
                     audioPlayer.loadURL(juce::URL{ file });
+
+                    double length = audioPlayer.getLengthInSeconds();
+                    positionSlider.setRange(0.0, length);
+                    positionSlider.setValue(0.0);
+                }
             });
     }
+
     else if (button == &muteButton) {
         static bool isMute = false;
         isMute = !isMute;
@@ -112,7 +135,13 @@ void PlayerGUI::sliderValueChanged(juce::Slider* slider)
         audioPlayer.setGain(slider->getValue());
     else if (slider == &speedSlider)
         audioPlayer.setSpeed(slider->getValue());
+    else if (slider == &positionSlider)
+    {
+        audioPlayer.setPosition(slider->getValue());
+    }
 }
+
+
 
 
 

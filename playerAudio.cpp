@@ -33,9 +33,14 @@ void PlayerAudio::loadURL(const juce::URL& audioURL)
         std::unique_ptr<juce::AudioFormatReaderSource> newSource(new juce::AudioFormatReaderSource(reader, true));
         transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
         readerSource.reset(newSource.release());
+        islouded = true;
     }
+    
 }
-
+bool PlayerAudio::isLouded()
+{
+    return islouded;
+}
 
 
 void PlayerAudio::setGain(float gain) { transportSource.setGain(gain); }
@@ -51,6 +56,10 @@ void PlayerAudio::setLooping(bool shouldLoop)
         readerSource->setLooping(shouldLoop);
     }
 }
+
+
+
+
 
 void PlayerAudio::start() { transportSource.start(); }
 void PlayerAudio::stop() { transportSource.stop(); }

@@ -17,6 +17,7 @@ public:
     void setSpeed(double ratio);
     void setPosition(double posInSecs);
     void setLooping(bool shouldLoop);
+    bool isLouded();
 
     void start();
     void stop();
@@ -40,6 +41,7 @@ private:
     juce::AudioTransportSource transportSource;
     std::unique_ptr<juce::ResamplingAudioSource> resampleSource;
     bool looping = false;
+    bool islouded = false;
 };
 
 
