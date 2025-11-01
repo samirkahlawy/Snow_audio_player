@@ -1,9 +1,8 @@
-﻿#include "MainComponent.h"
-
+#include"MainComponent.h"
 MainComponent::MainComponent() : playerGUI(player)
 {
     addAndMakeVisible(playerGUI);
-    setSize(1000, 700);
+    setSize(1200, 600);
     setAudioChannels(0, 2); // no inputs, 2 outputs
 }
 
@@ -36,4 +35,3 @@ void MainComponent::resized()
 {
     playerGUI.setBounds(getLocalBounds());
 }
-
