@@ -28,7 +28,7 @@ public:
         {
             setUsingNativeTitleBar(true);
             setContentOwned(c, true);
-            centreWithSize(600, 400);  // 
+            centreWithSize(700, 650);  // 
             setVisible(true);
         }
 
