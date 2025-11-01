@@ -1,6 +1,3 @@
-﻿
-//PlayerAudio.h
-
 #pragma once
 #include <JuceHeader.h>
 
@@ -10,13 +7,14 @@ public:
     PlayerAudio();
     ~PlayerAudio() override;
 
-    void changeListenerCallback(juce::ChangeBroadcaster* source) override; 
+    void changeListenerCallback(juce::ChangeBroadcaster* source) override;
 
     void loadURL(const juce::URL& audioURL);
     void setGain(float gain);
     void setSpeed(double ratio);
     void setPosition(double posInSecs);
     void setLooping(bool shouldLoop);
+
     bool isLouded();
 
     void start();
@@ -26,6 +24,9 @@ public:
     void goStart();
     void goEnd();
     void repeat(bool shouldRepeat);
+
+    double getCurrentPosition() const;
+
     double getPosition() const;
     double getLengthInSeconds() const;
     bool isPlaying() const;
@@ -35,13 +36,15 @@ public:
     void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
 
+    double getLengthInSeconds();
 private:
     juce::AudioFormatManager formatManager;
     std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
     juce::AudioTransportSource transportSource;
     std::unique_ptr<juce::ResamplingAudioSource> resampleSource;
     bool looping = false;
-    bool islouded = false;
+
+    bool isLoaded = false;
+
+    float previousGain = 1.0f;
 };
-
-
