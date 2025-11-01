@@ -1,4 +1,4 @@
-﻿#pragma once
+
 #include <JuceHeader.h>
 #include "PlayerAudio.h"
 #include "PlayerGUI.h"
