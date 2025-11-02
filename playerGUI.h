@@ -38,7 +38,18 @@ private:
     juce::TextButton muteButton{ "Mute" };
     juce::TextButton goStartButton{ "Go Start" };
     juce::TextButton goEndButton{ "Go End" };
-    juce::ToggleButton repeatingButton{ "Repeat" };
+    juce::ToggleButton repeatingButton{ "Repeat all" };
+    juce::TextButton setLoopPointsButton{ "Set loop points" };
+    juce::TextButton clearLoopPointsButton{ "Clear loop points" };
+
+	juce::Slider loopStartSlider;
+    juce::Slider loopEndSlider;
+
+	juce::Label loopStartLabel;
+	juce::Label loopEndLabel;
+
+    double tempLoopStart = 0.0;
+    double tempLoopEnd = 0.0;
 
     juce::Slider positionSlider;
     juce::Slider volumeSlider;

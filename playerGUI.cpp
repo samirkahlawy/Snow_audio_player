@@ -13,8 +13,10 @@ PlayerGUI::PlayerGUI(PlayerAudio& player)
     volumeLabel.setText("Volume", juce::dontSendNotification);
     speedLabel.setText("Speed", juce::dontSendNotification);
     positionLabel.setText("Position", juce::dontSendNotification);
+	loopStartLabel.setText("Loop Start", juce::dontSendNotification);
+	loopEndLabel.setText("Loop End", juce::dontSendNotification);
 
-    for (auto* label : { &volumeLabel, &speedLabel, &positionLabel })
+    for (auto* label : { &volumeLabel, &speedLabel, &positionLabel, &loopStartLabel, &loopEndLabel })
     {
         label->setJustificationType(juce::Justification::centredLeft);
         label->setColour(juce::Label::textColourId, juce::Colours::white);
@@ -36,10 +38,14 @@ PlayerGUI::PlayerGUI(PlayerAudio& player)
     addAndMakeVisible(goStartButton);
     addAndMakeVisible(goEndButton);
     addAndMakeVisible(repeatingButton);
+	addAndMakeVisible(setLoopPointsButton);
+	addAndMakeVisible(clearLoopPointsButton);
 
     addAndMakeVisible(volumeSlider);
     addAndMakeVisible(speedSlider);
     addAndMakeVisible(positionSlider);
+	addAndMakeVisible(loopStartSlider);
+	addAndMakeVisible(loopEndSlider);
 
     // Listeners
     playButton.addListener(this);
@@ -49,19 +55,26 @@ PlayerGUI::PlayerGUI(PlayerAudio& player)
     goStartButton.addListener(this);
     goEndButton.addListener(this);
     repeatingButton.addListener(this);
+	setLoopPointsButton.addListener(this);
+    clearLoopPointsButton.addListener(this);
 
     volumeSlider.addListener(this);
     speedSlider.addListener(this);
     positionSlider.addListener(this);
+	loopStartSlider.addListener(this);
+	loopEndSlider.addListener(this);
+    
 
     // Slider ranges / defaults
     volumeSlider.setRange(0.0, 1.0);
     volumeSlider.setValue(0.5);
     speedSlider.setRange(0.5, 2.0);
     speedSlider.setValue(1.0);
+	loopStartSlider.setRange(0.0, 10.0);
+	loopEndSlider.setRange(0.0,10.0);
 
     // start timer (interval in ms)
-    startTimer(100); // كل 100 ms -> تحديث سلس كفاية
+    startTimer(50); // كل 50 ms -> تحديث سلس كفاية
 }
 
 PlayerGUI::~PlayerGUI()
@@ -74,10 +87,14 @@ PlayerGUI::~PlayerGUI()
     goStartButton.removeListener(this);
     goEndButton.removeListener(this);
     repeatingButton.removeListener(this);
+	setLoopPointsButton.removeListener(this);
+	clearLoopPointsButton.removeListener(this);
 
     volumeSlider.removeListener(this);
     speedSlider.removeListener(this);
     positionSlider.removeListener(this);
+	loopStartSlider.removeListener(this);
+	loopEndSlider.removeListener(this);
 }
 
 void PlayerGUI::timerCallback()
@@ -86,6 +103,14 @@ void PlayerGUI::timerCallback()
     {
         double currentPos = audioPlayer.getPosition();
         positionSlider.setValue(currentPos, juce::dontSendNotification);
+
+        if (audioPlayer.isCustomLoopEnabled())
+        {
+            metadataLabel.setText("Custom Loop Active: " +
+                juce::String(audioPlayer.getLoopStartTime(), 1) + "s - " +
+                juce::String(audioPlayer.getLoopEndTime(), 1) + "s",
+                juce::dontSendNotification);
+        }
     }
 }
 
@@ -126,7 +151,12 @@ void PlayerGUI::resized()
     goEndButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
     buttonArea.removeFromLeft(gap);
     repeatingButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
-    area.removeFromTop(20);
+    buttonArea.removeFromLeft(gap);
+    setLoopPointsButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
+    buttonArea.removeFromLeft(gap);
+	clearLoopPointsButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
+    
+	area.removeFromTop(20);
     loadPlaylistButton.setBounds(20, area.getY(), 120, 30);
     playSelectedButton.setBounds(160, area.getY(), 120, 30);
     area.removeFromTop(40);
@@ -152,6 +182,17 @@ void PlayerGUI::resized()
     // Position
     positionLabel.setBounds(10, area.getY(), labelWidth, 20);
     positionSlider.setBounds(100, area.getY() - 10, getWidth() - 120, sliderHeight);
+    area.removeFromTop(sliderHeight + 30);
+
+	//customing loop 
+	loopStartLabel.setBounds(10, area.getY(), labelWidth, 20);
+	loopStartSlider.setBounds(100, area.getY() - 10, getWidth() - 120, sliderHeight);
+    area.removeFromTop(sliderHeight + 30);
+
+	loopEndLabel.setBounds(10, area.getY(), labelWidth, 20);
+	loopEndSlider.setBounds(100, area.getY() - 10, getWidth() - 120, sliderHeight);
+	area.removeFromTop(sliderHeight + 30);
+
 
     // Metadata label at bottom
     metadataLabel.setBounds(10, getHeight() - 40, getWidth() - 20, 30);
@@ -193,6 +234,10 @@ void PlayerGUI::buttonClicked(juce::Button* button)
                         double length = audioPlayer.getLengthInSeconds();
                         positionSlider.setRange(0.0, length);
                         positionSlider.setValue(0.0);
+                        loopStartSlider.setRange(0.0, length);
+                        loopEndSlider.setRange(0.0, length);
+                        loopEndSlider.setValue(length);
+
 
                         // حساب مدة الملف
                         int totalSeconds = (int)length;
@@ -246,7 +291,33 @@ void PlayerGUI::buttonClicked(juce::Button* button)
     else if (button == &repeatingButton)
     {
         audioPlayer.repeat(repeatingButton.getToggleState());
+        if (repeatingButton.getToggleState())
+        {
+            audioPlayer.setCustomLoopEnabled(false,0,0);
+        }
     }
+    else if (button == &setLoopPointsButton)
+    {
+        
+        double start = loopStartSlider.getValue();
+        double end = loopEndSlider.getValue();
+
+        if (start < end)
+        {
+            audioPlayer.setCustomLoopEnabled(true, start, end);
+            repeatingButton.setToggleState(false, juce::dontSendNotification); 
+            metadataLabel.setText("Custom Loop: " + juce::String(start, 1) + "s - " + juce::String(end, 1) + "s",
+                juce::dontSendNotification);
+        }
+    }
+    else if (button == &clearLoopPointsButton)
+    {
+        
+        audioPlayer.setCustomLoopEnabled(false,0,0);
+        repeatingButton.setToggleState(false, juce::dontSendNotification);
+        metadataLabel.setText("Loop cleared", juce::dontSendNotification);
+    }
+
 }
 
 void PlayerGUI::sliderValueChanged(juce::Slider* slider)
@@ -262,6 +333,20 @@ void PlayerGUI::sliderValueChanged(juce::Slider* slider)
     else if (slider == &positionSlider)
     {
         audioPlayer.setPosition(slider->getValue());
+    }
+    else if (slider == &loopStartSlider)
+    {
+        if (loopStartSlider.getValue() >= loopEndSlider.getValue())
+        {
+            loopEndSlider.setValue(loopStartSlider.getValue() + 1.0);
+        }
+    }
+    else if (slider == &loopEndSlider)
+    {
+        if (loopEndSlider.getValue() <= loopStartSlider.getValue())
+        {
+            loopStartSlider.setValue(loopEndSlider.getValue() - 1.0);
+        }
     }
 }
 

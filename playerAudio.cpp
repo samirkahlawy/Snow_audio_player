@@ -11,16 +11,20 @@ PlayerAudio::PlayerAudio()
 
     isLoaded = false;
     previousGain = 1.0f;
+
+    startTimer(50);
 }
 
 PlayerAudio::~PlayerAudio()
 {
+    stopTimer();
     transportSource.removeChangeListener(this);
     transportSource.stop();
     transportSource.setSource(nullptr);
     readerSource.reset();
     resampleSource.reset();
 }
+
 
 void PlayerAudio::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
@@ -45,6 +49,19 @@ void PlayerAudio::releaseResources()
 double PlayerAudio::getLengthInSeconds()
 {
     return transportSource.getLengthInSeconds();
+}
+
+void PlayerAudio::timerCallback()
+{
+    if (customLoopEnabled && transportSource.isPlaying())
+    {
+        double pos = transportSource.getCurrentPosition();
+        double len = transportSource.getLengthInSeconds();
+        if (pos>=loopEndTime || len>0.0 && std::abs(pos-len) < 0.05)
+        {
+            transportSource.setPosition(loopStartTime);
+        }
+    }
 }
 
 
@@ -119,6 +136,32 @@ void PlayerAudio::setLooping(bool shouldLoop)
     looping = shouldLoop;
 }
 
+void PlayerAudio::setCustomLoopPoints(double startTime, double endTime)
+{
+    loopStartTime = startTime;
+    loopEndTime = endTime;
+}
+void PlayerAudio::setCustomLoopEnabled(bool shouldLoop, double startTime, double endTime)
+{
+    customLoopEnabled = shouldLoop;
+    if (customLoopEnabled && startTime >=0 && endTime>startTime)
+    {
+        loopStartTime = startTime;
+		loopEndTime = endTime;
+		setLooping(false);  
+        double pos = transportSource.getCurrentPosition();
+        if (pos < loopStartTime || pos>loopEndTime)
+        {
+            transportSource.setPosition(loopStartTime);
+        }
+    }
+    else if (!shouldLoop)
+    {
+        setLooping(looping); 
+	}
+
+}
+
 void PlayerAudio::start()
 {
     transportSource.start();
@@ -163,13 +206,10 @@ void PlayerAudio::changeListenerCallback(juce::ChangeBroadcaster* source)
         {
             double pos = transportSource.getCurrentPosition();
             double len = transportSource.getLengthInSeconds();
-            if (len > 0.0 && std::abs(pos - len) < 0.05)
+            if (looping && len > 0.0 && std::abs(pos - len) < 0.05)
             {
-                if (looping)
-                {
-                    transportSource.setPosition(0.0);
-                    transportSource.start();
-                }
+                transportSource.setPosition(0.0);
+                transportSource.start();
             }
         }
     }
