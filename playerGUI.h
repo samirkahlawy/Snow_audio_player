@@ -38,6 +38,8 @@ private:
     juce::TextButton muteButton{ "Mute" };
     juce::TextButton goStartButton{ "Go Start" };
     juce::TextButton goEndButton{ "Go End" };
+    juce::TextButton goForwardButton{ "10s Forward" };
+    juce::TextButton gobackButton{ "10s Fackword" };
     juce::ToggleButton repeatingButton{ "Repeat all" };
     juce::TextButton setLoopPointsButton{ "Set loop points" };
     juce::TextButton clearLoopPointsButton{ "Clear loop points" };

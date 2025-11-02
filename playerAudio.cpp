@@ -198,6 +198,35 @@ void PlayerAudio::goEnd()
         transportSource.setPosition(len);
 }
 
+void PlayerAudio::forward10Sec()
+{
+	double pos = transportSource.getCurrentPosition();
+	double len = transportSource.getLengthInSeconds();
+    if (std::abs(len-pos)>10)
+    {
+        transportSource.setPosition(pos + 10.0);
+    }
+    else
+    {
+		transportSource.setPosition(len);
+    }
+}
+
+
+void PlayerAudio::back10Sec()
+{
+    double pos = transportSource.getCurrentPosition();
+    if (pos>10)
+    {
+        transportSource.setPosition(pos - 10.0);
+    }
+    else
+    {
+        transportSource.setPosition(0.0);
+		transportSource.start();
+    }
+}
+
 void PlayerAudio::changeListenerCallback(juce::ChangeBroadcaster* source)
 {
     if (source == &transportSource)

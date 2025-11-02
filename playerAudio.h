@@ -25,6 +25,8 @@ public:
     void setMute(bool shouldMute);
     void goStart();
     void goEnd();
+	void forward10Sec();
+	void back10Sec();
     void repeat(bool shouldRepeat);
 	void setCustomLoopEnabled(bool shouldLoop,double startTime,double endTime);
 

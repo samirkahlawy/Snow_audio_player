@@ -40,6 +40,9 @@ PlayerGUI::PlayerGUI(PlayerAudio& player)
     addAndMakeVisible(repeatingButton);
 	addAndMakeVisible(setLoopPointsButton);
 	addAndMakeVisible(clearLoopPointsButton);
+    addAndMakeVisible(goForwardButton);
+    addAndMakeVisible(gobackButton);
+
 
     addAndMakeVisible(volumeSlider);
     addAndMakeVisible(speedSlider);
@@ -54,6 +57,8 @@ PlayerGUI::PlayerGUI(PlayerAudio& player)
     muteButton.addListener(this);
     goStartButton.addListener(this);
     goEndButton.addListener(this);
+	goForwardButton.addListener(this);
+	gobackButton.addListener(this);
     repeatingButton.addListener(this);
 	setLoopPointsButton.addListener(this);
     clearLoopPointsButton.addListener(this);
@@ -150,6 +155,10 @@ void PlayerGUI::resized()
     buttonArea.removeFromLeft(gap);
     goEndButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
     buttonArea.removeFromLeft(gap);
+	goForwardButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
+	buttonArea.removeFromLeft(gap);
+	gobackButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
+	buttonArea.removeFromLeft(gap);
     repeatingButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
     buttonArea.removeFromLeft(gap);
     setLoopPointsButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
@@ -208,6 +217,14 @@ void PlayerGUI::buttonClicked(juce::Button* button)
     else if (button == &stopButton)
     {
         audioPlayer.stop();
+    }
+    else if (button == &goForwardButton)
+    {
+        audioPlayer.forward10Sec();
+    }
+    else if (button == &gobackButton)
+    {
+        audioPlayer.back10Sec();
     }
     else if (button == &loadPlaylistButton)
     {
