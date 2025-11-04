@@ -31,6 +31,8 @@ public:
 
     void resized() override;
 
+    void addFileToPlaylist(const juce::File& audioFile);
+
 private:
     PlayerAudio& audioPlayer;
     juce::TableListBox table;

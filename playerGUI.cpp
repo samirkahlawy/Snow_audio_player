@@ -1,8 +1,7 @@
-#include "PlayerGUI.h"
+﻿#include "PlayerGUI.h"
 
 PlayerGUI::PlayerGUI(PlayerAudio& player)
     : audioPlayer(player), playlist(player)
-
 {
     formatManager.registerBasicFormats();
 
@@ -32,7 +31,7 @@ PlayerGUI::PlayerGUI(PlayerAudio& player)
     playSelectedButton.setButtonText("Play Selected");
     addAndMakeVisible(playSelectedButton);
 
-  
+
     addAndMakeVisible(playlist);
 
     loadPlaylistButton.addListener(this);
@@ -50,6 +49,7 @@ PlayerGUI::PlayerGUI(PlayerAudio& player)
     addAndMakeVisible(clearLoopPointsButton);
     addAndMakeVisible(goForwardButton);
     addAndMakeVisible(gobackButton);
+    addAndMakeVisible(mixButton);
 
 
     addAndMakeVisible(volumeSlider);
@@ -70,6 +70,7 @@ PlayerGUI::PlayerGUI(PlayerAudio& player)
     repeatingButton.addListener(this);
     setLoopPointsButton.addListener(this);
     clearLoopPointsButton.addListener(this);
+    mixButton.addListener(this);
 
     volumeSlider.addListener(this);
     speedSlider.addListener(this);
@@ -87,12 +88,11 @@ PlayerGUI::PlayerGUI(PlayerAudio& player)
     loopEndSlider.setRange(0.0, 10.0);
 
     // start timer (interval in ms)
-    startTimer(50); 
+    startTimer(10);
 }
 
 PlayerGUI::~PlayerGUI()
 {
-  
     playButton.removeListener(this);
     stopButton.removeListener(this);
     loadButton.removeListener(this);
@@ -102,6 +102,7 @@ PlayerGUI::~PlayerGUI()
     repeatingButton.removeListener(this);
     setLoopPointsButton.removeListener(this);
     clearLoopPointsButton.removeListener(this);
+    mixButton.removeListener(this);
 
     volumeSlider.removeListener(this);
     speedSlider.removeListener(this);
@@ -134,7 +135,6 @@ void PlayerGUI::paint(juce::Graphics& g)
 {
     g.fillAll(juce::Colours::lightslategrey);
 
-   
     auto bounds = getLocalBounds();
     auto sliderArea = positionSlider.getBounds();
 
@@ -143,9 +143,7 @@ void PlayerGUI::paint(juce::Graphics& g)
     auto area = getLocalBounds().reduced(10);
     auto waveformArea = area.removeFromTop(120);
     drawWaveform(g, waveformArea);
-
 }
-
 
 void PlayerGUI::resized()
 {
@@ -163,7 +161,7 @@ void PlayerGUI::resized()
     juce::Array<juce::Button*> buttons = {
         &loadButton, &playButton, &stopButton, &muteButton,
         &goStartButton, &goEndButton, &goForwardButton, &gobackButton,
-        &repeatingButton, &setLoopPointsButton, &clearLoopPointsButton
+        &repeatingButton,&setLoopPointsButton,&clearLoopPointsButton ,&mixButton
     };
 
     for (auto* btn : buttons)
@@ -238,7 +236,6 @@ void PlayerGUI::buttonClicked(juce::Button* button)
     {
         playlist.playSelectedTrack();
     }
-
     else if (button == &loadButton)
     {
         chooser.launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
@@ -250,7 +247,7 @@ void PlayerGUI::buttonClicked(juce::Button* button)
                     thumbnail.clear();
                     thumbnail.setSource(new juce::FileInputSource(file));
                     totalLength = audioPlayer.getLengthInSeconds();
-                    repaint(); 
+                    repaint();
                     audioPlayer.loadURL(juce::URL{ file });
 
                     if (audioPlayer.isLouded())
@@ -261,7 +258,6 @@ void PlayerGUI::buttonClicked(juce::Button* button)
                         loopStartSlider.setRange(0.0, length);
                         loopEndSlider.setRange(0.0, length);
                         loopEndSlider.setValue(length);
-
 
                         int totalSeconds = (int)length;
                         int minutes = totalSeconds / 60;
@@ -292,7 +288,6 @@ void PlayerGUI::buttonClicked(juce::Button* button)
                 }
             });
     }
-
     else if (button == &muteButton)
     {
         static bool isMute = false;
@@ -318,7 +313,6 @@ void PlayerGUI::buttonClicked(juce::Button* button)
     }
     else if (button == &setLoopPointsButton)
     {
-
         double start = loopStartSlider.getValue();
         double end = loopEndSlider.getValue();
 
@@ -332,12 +326,18 @@ void PlayerGUI::buttonClicked(juce::Button* button)
     }
     else if (button == &clearLoopPointsButton)
     {
-
         audioPlayer.setCustomLoopEnabled(false, 0, 0);
         repeatingButton.setToggleState(false, juce::dontSendNotification);
         metadataLabel.setText("Loop cleared", juce::dontSendNotification);
     }
-
+    else if (button == &mixButton)
+    {
+        mixWindow = std::make_unique<MixWindow>(audioPlayer, playlist);
+        mixWindow->setSize(400, 300);
+        mixWindow->setCentrePosition(getWidth() / 2, getHeight() / 2);
+        mixWindow->addToDesktop(0);
+        mixWindow->setVisible(true);
+    }
 }
 
 void PlayerGUI::sliderValueChanged(juce::Slider* slider)
@@ -369,6 +369,7 @@ void PlayerGUI::sliderValueChanged(juce::Slider* slider)
         }
     }
 }
+
 void PlayerGUI::drawWaveform(juce::Graphics& g, juce::Rectangle<int> area)
 {
     g.setColour(juce::Colours::darkgrey);
@@ -381,15 +382,14 @@ void PlayerGUI::drawWaveform(juce::Graphics& g, juce::Rectangle<int> area)
         return;
     }
 
-    // 
     g.setColour(juce::Colours::skyblue);
     thumbnail.drawChannels(g, area, 0.0, totalLength, 1.0f);
 
-    // 
     g.setColour(juce::Colours::red);
     int playheadX = area.getX() + (int)((currentPosition / totalLength) * area.getWidth());
     g.drawLine((float)playheadX, (float)area.getY(), (float)playheadX, (float)area.getBottom(), 2.0f);
 }
+
 void PlayerGUI::mouseDown(const juce::MouseEvent& event)
 {
     auto area = getLocalBounds().reduced(10).removeFromTop(120);
@@ -400,6 +400,232 @@ void PlayerGUI::mouseDown(const juce::MouseEvent& event)
     }
 }
 
+PlayerGUI::MixWindow::MixWindow(PlayerAudio& player, PlaylistComponent& playlistComp)
+    : audioPlayer(player), playlist(playlistComp)
+{
+    formatManager.registerBasicFormats();
+    track1Label.setText("Track 1: No file selected", juce::dontSendNotification);
+    track2Label.setText("Track 2: No file selected", juce::dontSendNotification);
+    infoLabel.setText("Select two tracks to mix", juce::dontSendNotification);
 
+    for (auto* label : { &track1Label, &track2Label, &infoLabel })
+    {
+        label->setJustificationType(juce::Justification::centredLeft);
+        addAndMakeVisible(*label);
+    }
 
+    for (auto* button : { &browseButton1, &browseButton2, &mixButton, &cancelButton })
+    {
+        addAndMakeVisible(*button);
+        button->addListener(this);
+    }
 
+    setSize(400, 300);
+}
+
+void PlayerGUI::MixWindow::paint(juce::Graphics& g)
+{
+    g.fillAll(juce::Colours::darkslategrey);
+    g.setColour(juce::Colours::white);
+    g.setFont(16.0f);
+    g.drawText("Mix Two Tracks", getLocalBounds().removeFromTop(40), juce::Justification::centred);
+}
+
+void PlayerGUI::MixWindow::resized()
+{
+    auto area = getLocalBounds().reduced(20);
+    area.removeFromTop(40);
+
+    int buttonHeight = 30;
+    int gap = 10;
+
+    auto row1 = area.removeFromTop(buttonHeight);
+    browseButton1.setBounds(row1.removeFromLeft(120));
+    row1.removeFromLeft(10);
+    track1Label.setBounds(row1);
+
+    area.removeFromTop(gap);
+
+    auto row2 = area.removeFromTop(buttonHeight);
+    browseButton2.setBounds(row2.removeFromLeft(120));
+    row2.removeFromLeft(10);
+    track2Label.setBounds(row2);
+
+    area.removeFromTop(20);
+
+    infoLabel.setBounds(area.removeFromTop(60));
+
+    area.removeFromTop(20);
+
+    auto buttonRow = area.removeFromTop(buttonHeight);
+    mixButton.setBounds(buttonRow.removeFromLeft(120));
+    buttonRow.removeFromLeft(20);
+    cancelButton.setBounds(buttonRow.removeFromLeft(120));
+}
+
+void PlayerGUI::MixWindow::buttonClicked(juce::Button* button)
+{
+    if (button == &browseButton1)
+    {
+        loudTrackForMixing(1);
+    }
+    else if (button == &browseButton2)
+    {
+        loudTrackForMixing(2);
+    }
+    else if (button == &mixButton)
+    {
+        if (track1File.existsAsFile() && track2File.existsAsFile())
+        {
+            performMixing();
+        }
+        else
+        {
+            infoLabel.setText("Please select both tracks first", juce::dontSendNotification);
+        }
+    }
+    else if (button == &cancelButton)
+    {
+        setVisible(false);
+    }
+}
+
+void PlayerGUI::MixWindow::loudTrackForMixing(int trackNumber)
+{
+    auto callback = [this, trackNumber](const juce::FileChooser& chooser)
+        {
+            auto result = chooser.getResult();
+            if (result.existsAsFile())
+            {
+                if (trackNumber == 1)
+                {
+                    track1File = result;
+                    track1Label.setText("Track 1: " + result.getFileName(), juce::dontSendNotification);
+                }
+                else
+                {
+                    track2File = result;
+                    track2Label.setText("Track 2: " + result.getFileName(), juce::dontSendNotification);
+                }
+
+                repaint();
+            }
+        };
+
+    fileChooser = std::make_unique<juce::FileChooser>("Select audio file",
+        juce::File{},
+        "*.wav;*.mp3;*.aiff");
+
+    fileChooser->launchAsync(juce::FileBrowserComponent::openMode |
+        juce::FileBrowserComponent::canSelectFiles,
+        callback);
+}
+
+void PlayerGUI::MixWindow::performMixing()
+{
+    try
+    {
+        infoLabel.setText("Starting mix process...", juce::dontSendNotification);
+
+        auto* reader1 = formatManager.createReaderFor(track1File);
+        auto* reader2 = formatManager.createReaderFor(track2File);
+
+        if (reader1 == nullptr || reader2 == nullptr)
+        {
+            infoLabel.setText("Error: Cannot read one of the files", juce::dontSendNotification);
+            return;
+        }
+
+        auto minLength = juce::jmin(reader1->lengthInSamples, reader2->lengthInSamples);
+        auto numChannels = juce::jmax(reader1->numChannels, reader2->numChannels);
+
+        if (minLength == 0)
+        {
+            infoLabel.setText("Error: Files have no audio data", juce::dontSendNotification);
+            delete reader1;
+            delete reader2;
+            return;
+        }
+
+        infoLabel.setText("Creating mix buffer...", juce::dontSendNotification);
+
+        juce::AudioBuffer<float> mixBuffer(numChannels, minLength);
+
+        juce::AudioBuffer<float> buffer1(reader1->numChannels, minLength);
+        juce::AudioBuffer<float> buffer2(reader2->numChannels, minLength);
+
+        reader1->read(&buffer1, 0, minLength, 0, true, true);
+        reader2->read(&buffer2, 0, minLength, 0, true, true);
+
+        infoLabel.setText("Mixing audio data...", juce::dontSendNotification);
+
+        for (int channel = 0; channel < numChannels; ++channel)
+        {
+            auto channel1 = channel % reader1->numChannels;
+            auto channel2 = channel % reader2->numChannels;
+
+            auto* dest = mixBuffer.getWritePointer(channel);
+            auto* src1 = buffer1.getReadPointer(channel1);
+            auto* src2 = buffer2.getReadPointer(channel2);
+
+            for (int i = 0; i < minLength; ++i)
+            {
+                dest[i] = (src1[i] + src2[i]) * 0.5f;
+            }
+        }
+
+        infoLabel.setText("Saving mixed file...", juce::dontSendNotification);
+
+        juce::File documentsDir = juce::File::getSpecialLocation(juce::File::userDocumentsDirectory);
+        juce::File outputFile = documentsDir.getChildFile("mixed_output.wav");
+
+        int counter = 1;
+        while (outputFile.exists())
+        {
+            outputFile = documentsDir.getChildFile("mixed_output_" + juce::String(counter) + ".wav");
+            counter++;
+        }
+
+        juce::WavAudioFormat format;
+
+        if (auto fileStream = std::unique_ptr<juce::FileOutputStream>(outputFile.createOutputStream()))
+        {
+            if (auto writer = std::unique_ptr<juce::AudioFormatWriter>(
+                format.createWriterFor(fileStream.get(),
+                    reader1->sampleRate,
+                    numChannels,
+                    16,
+                    juce::StringPairArray(),
+                    0)))
+            {
+                fileStream.release();
+
+                writer->writeFromAudioSampleBuffer(mixBuffer, 0, mixBuffer.getNumSamples());
+
+                audioPlayer.loadURL(juce::URL(outputFile));
+                playlist.addFileToPlaylist(outputFile);
+
+                infoLabel.setText("Success! Mixed file saved and added to playlist.", juce::dontSendNotification);
+
+                juce::Timer::callAfterDelay(2000, [this]() {
+                    setVisible(false);
+                    });
+            }
+            else
+            {
+                infoLabel.setText("Error: Could not create writer", juce::dontSendNotification);
+            }
+        }
+        else
+        {
+            infoLabel.setText("Error: Could not create file", juce::dontSendNotification);
+        }
+
+        delete reader1;
+        delete reader2;
+    }
+    catch (const std::exception& e)
+    {
+        infoLabel.setText(juce::String("Error: ") + e.what(), juce::dontSendNotification);
+    }
+}

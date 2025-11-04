@@ -73,3 +73,15 @@ void PlaylistComponent::resized()
 {
     table.setBounds(getLocalBounds());
 }
+
+void PlaylistComponent::addFileToPlaylist(const juce::File& audioFile)
+{
+    if (audioFile.existsAsFile())
+    {
+        trackFiles.add(audioFile);
+
+        table.updateContent();
+
+        DBG("File added to playlist: " + audioFile.getFileName());
+    }
+}

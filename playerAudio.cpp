@@ -13,7 +13,7 @@ PlayerAudio::PlayerAudio()
     isLoaded = false;
     previousGain = 1.0f;
 
-    startTimer(50);
+    startTimer(10);
 }
 
 PlayerAudio::~PlayerAudio()
@@ -58,7 +58,7 @@ void PlayerAudio::timerCallback()
     {
         double pos = transportSource.getCurrentPosition();
         double len = transportSource.getLengthInSeconds();
-        if (pos >= loopEndTime || len > 0.0 && std::abs(pos - len) < 0.05)
+        if (pos >= loopEndTime || len > 0.0 && std::abs(pos - len) < 0.02)
         {
             transportSource.setPosition(loopStartTime);
         }

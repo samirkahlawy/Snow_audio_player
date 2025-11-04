@@ -3,7 +3,6 @@
 #include "PlayerAudio.h"
 #include "PlaylistComponent.h"
 
-
 class PlayerGUI : public juce::Component,
     public juce::Button::Listener,
     public juce::Slider::Listener,
@@ -24,7 +23,7 @@ public:
 
 private:
     juce::AudioFormatManager formatManager;
-    juce::AudioThumbnailCache thumbnailCache{ 5 }; 
+    juce::AudioThumbnailCache thumbnailCache{ 5 };
     juce::AudioThumbnail thumbnail{ 512, formatManager, thumbnailCache };
 
     double currentPosition = 0.0;
@@ -51,6 +50,7 @@ private:
     juce::ToggleButton repeatingButton{ "Repeat all" };
     juce::TextButton setLoopPointsButton{ "Set loop points" };
     juce::TextButton clearLoopPointsButton{ "Clear loop points" };
+    juce::TextButton mixButton{ "Mix two tracks" };
 
     juce::Slider loopStartSlider;
     juce::Slider loopEndSlider;
@@ -70,4 +70,37 @@ private:
     juce::Label volumeLabel;
     juce::Label speedLabel;
     juce::Label positionLabel;
+
+    class MixWindow : public juce::Button::Listener, public juce::Component
+    {
+    public:
+        MixWindow(PlayerAudio& player, PlaylistComponent& playlistComp);
+        void paint(juce::Graphics& g)override;
+        void resized()override;
+        void buttonClicked(juce::Button* button)override;
+
+    private:
+        PlayerAudio& audioPlayer;
+        PlaylistComponent& playlist;
+
+        juce::TextButton  browseButton1{ "Select Track 1 " };
+        juce::TextButton  browseButton2{ "Select Track 2 " };
+        juce::TextButton  mixButton{ "Mix Tracks" };
+        juce::TextButton  cancelButton{ "Cancel" };
+
+        juce::Label track1Label;
+        juce::Label track2Label;
+        juce::Label infoLabel;
+
+        juce::File track1File;
+        juce::File track2File;
+
+        juce::AudioFormatManager formatManager;
+
+        void loudTrackForMixing(int trackNumber);
+        void performMixing();
+
+        std::unique_ptr<juce::FileChooser> fileChooser;
+    };
+    std::unique_ptr<MixWindow> mixWindow;
 };
