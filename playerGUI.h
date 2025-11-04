@@ -20,10 +20,18 @@ public:
 
     void buttonClicked(juce::Button* button) override;
     void sliderValueChanged(juce::Slider* slider) override;
-
-    //void timerCallback() override;
+    void mouseDown(const juce::MouseEvent& event);
 
 private:
+    juce::AudioFormatManager formatManager;
+    juce::AudioThumbnailCache thumbnailCache{ 5 }; 
+    juce::AudioThumbnail thumbnail{ 512, formatManager, thumbnailCache };
+
+    double currentPosition = 0.0;
+    double totalLength = 0.0;
+
+    void drawWaveform(juce::Graphics& g, juce::Rectangle<int> area);
+
     PlayerAudio& audioPlayer;
 
     PlaylistComponent playlist;
@@ -44,11 +52,11 @@ private:
     juce::TextButton setLoopPointsButton{ "Set loop points" };
     juce::TextButton clearLoopPointsButton{ "Clear loop points" };
 
-	juce::Slider loopStartSlider;
+    juce::Slider loopStartSlider;
     juce::Slider loopEndSlider;
 
-	juce::Label loopStartLabel;
-	juce::Label loopEndLabel;
+    juce::Label loopStartLabel;
+    juce::Label loopEndLabel;
 
     double tempLoopStart = 0.0;
     double tempLoopEnd = 0.0;
@@ -63,4 +71,3 @@ private:
     juce::Label speedLabel;
     juce::Label positionLabel;
 };
-
