@@ -4,6 +4,9 @@ PlayerGUI::PlayerGUI(PlayerAudio& player)
     : audioPlayer(player), playlist(player)
 
 {
+    formatManager.registerBasicFormats();
+
+    setInterceptsMouseClicks(true, false);
 
     metadataLabel.setText("No file loaded", juce::dontSendNotification);
     metadataLabel.setJustificationType(juce::Justification::centred);
@@ -13,8 +16,8 @@ PlayerGUI::PlayerGUI(PlayerAudio& player)
     volumeLabel.setText("Volume", juce::dontSendNotification);
     speedLabel.setText("Speed", juce::dontSendNotification);
     positionLabel.setText("Position", juce::dontSendNotification);
-	loopStartLabel.setText("Loop Start", juce::dontSendNotification);
-	loopEndLabel.setText("Loop End", juce::dontSendNotification);
+    loopStartLabel.setText("Loop Start", juce::dontSendNotification);
+    loopEndLabel.setText("Loop End", juce::dontSendNotification);
 
     for (auto* label : { &volumeLabel, &speedLabel, &positionLabel, &loopStartLabel, &loopEndLabel })
     {
@@ -23,9 +26,14 @@ PlayerGUI::PlayerGUI(PlayerAudio& player)
         addAndMakeVisible(*label);
     }
     //playlist
-    addAndMakeVisible(playlist);
+    loadPlaylistButton.setButtonText("Load Playlist");
     addAndMakeVisible(loadPlaylistButton);
+
+    playSelectedButton.setButtonText("Play Selected");
     addAndMakeVisible(playSelectedButton);
+
+  
+    addAndMakeVisible(playlist);
 
     loadPlaylistButton.addListener(this);
     playSelectedButton.addListener(this);
@@ -38,8 +46,8 @@ PlayerGUI::PlayerGUI(PlayerAudio& player)
     addAndMakeVisible(goStartButton);
     addAndMakeVisible(goEndButton);
     addAndMakeVisible(repeatingButton);
-	addAndMakeVisible(setLoopPointsButton);
-	addAndMakeVisible(clearLoopPointsButton);
+    addAndMakeVisible(setLoopPointsButton);
+    addAndMakeVisible(clearLoopPointsButton);
     addAndMakeVisible(goForwardButton);
     addAndMakeVisible(gobackButton);
 
@@ -47,8 +55,8 @@ PlayerGUI::PlayerGUI(PlayerAudio& player)
     addAndMakeVisible(volumeSlider);
     addAndMakeVisible(speedSlider);
     addAndMakeVisible(positionSlider);
-	addAndMakeVisible(loopStartSlider);
-	addAndMakeVisible(loopEndSlider);
+    addAndMakeVisible(loopStartSlider);
+    addAndMakeVisible(loopEndSlider);
 
     // Listeners
     playButton.addListener(this);
@@ -57,34 +65,34 @@ PlayerGUI::PlayerGUI(PlayerAudio& player)
     muteButton.addListener(this);
     goStartButton.addListener(this);
     goEndButton.addListener(this);
-	goForwardButton.addListener(this);
-	gobackButton.addListener(this);
+    goForwardButton.addListener(this);
+    gobackButton.addListener(this);
     repeatingButton.addListener(this);
-	setLoopPointsButton.addListener(this);
+    setLoopPointsButton.addListener(this);
     clearLoopPointsButton.addListener(this);
 
     volumeSlider.addListener(this);
     speedSlider.addListener(this);
     positionSlider.addListener(this);
-	loopStartSlider.addListener(this);
-	loopEndSlider.addListener(this);
-    
+    loopStartSlider.addListener(this);
+    loopEndSlider.addListener(this);
+
 
     // Slider ranges / defaults
     volumeSlider.setRange(0.0, 1.0);
     volumeSlider.setValue(0.5);
     speedSlider.setRange(0.5, 2.0);
     speedSlider.setValue(1.0);
-	loopStartSlider.setRange(0.0, 10.0);
-	loopEndSlider.setRange(0.0,10.0);
+    loopStartSlider.setRange(0.0, 10.0);
+    loopEndSlider.setRange(0.0, 10.0);
 
     // start timer (interval in ms)
-    startTimer(50); // كل 50 ms -> تحديث سلس كفاية
+    startTimer(50); 
 }
 
 PlayerGUI::~PlayerGUI()
 {
-    // إزالة الـ listeners (حُسن نية، لتفادي dangling listeners)
+  
     playButton.removeListener(this);
     stopButton.removeListener(this);
     loadButton.removeListener(this);
@@ -92,14 +100,14 @@ PlayerGUI::~PlayerGUI()
     goStartButton.removeListener(this);
     goEndButton.removeListener(this);
     repeatingButton.removeListener(this);
-	setLoopPointsButton.removeListener(this);
-	clearLoopPointsButton.removeListener(this);
+    setLoopPointsButton.removeListener(this);
+    clearLoopPointsButton.removeListener(this);
 
     volumeSlider.removeListener(this);
     speedSlider.removeListener(this);
     positionSlider.removeListener(this);
-	loopStartSlider.removeListener(this);
-	loopEndSlider.removeListener(this);
+    loopStartSlider.removeListener(this);
+    loopEndSlider.removeListener(this);
 }
 
 void PlayerGUI::timerCallback()
@@ -107,7 +115,10 @@ void PlayerGUI::timerCallback()
     if (audioPlayer.isLouded() && audioPlayer.isPlaying())
     {
         double currentPos = audioPlayer.getPosition();
+
         positionSlider.setValue(currentPos, juce::dontSendNotification);
+        currentPosition = audioPlayer.getCurrentPosition();
+        repaint();
 
         if (audioPlayer.isCustomLoopEnabled())
         {
@@ -121,92 +132,85 @@ void PlayerGUI::timerCallback()
 
 void PlayerGUI::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colours::darkgrey);
+    g.fillAll(juce::Colours::lightslategrey);
 
-    // رسم الوقت
+   
     auto bounds = getLocalBounds();
     auto sliderArea = positionSlider.getBounds();
 
     g.setColour(juce::Colours::whitesmoke);
     g.setFont(14.0f);
-}
+    auto area = getLocalBounds().reduced(10);
+    auto waveformArea = area.removeFromTop(120);
+    drawWaveform(g, waveformArea);
 
+}
 
 
 void PlayerGUI::resized()
 {
-    auto area = getLocalBounds().reduced(20);
+    auto area = getLocalBounds().reduced(15);
 
-    // ---- Buttons row ----
-    int buttonHeight = 36;
-    int buttonWidth = 90;
-    int gap = 8;
+    // --- 1)  Waveform ---
+    auto waveformArea = area.removeFromTop(120);
+    positionSlider.setBounds(waveformArea);
 
+    // --- 2) buttons row---
+    int buttonHeight = 35;
+    int buttonWidth = 80;
+    int gap = 7;
     auto buttonArea = area.removeFromTop(buttonHeight);
-    loadButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
-    buttonArea.removeFromLeft(gap);
-    playButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
-    buttonArea.removeFromLeft(gap);
-    stopButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
-    buttonArea.removeFromLeft(gap);
-    muteButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
-    buttonArea.removeFromLeft(gap);
-    goStartButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
-    buttonArea.removeFromLeft(gap);
-    goEndButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
-    buttonArea.removeFromLeft(gap);
-	goForwardButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
-	buttonArea.removeFromLeft(gap);
-	gobackButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
-	buttonArea.removeFromLeft(gap);
-    repeatingButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
-    buttonArea.removeFromLeft(gap);
-    setLoopPointsButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
-    buttonArea.removeFromLeft(gap);
-	clearLoopPointsButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
-    
-	area.removeFromTop(20);
-    loadPlaylistButton.setBounds(20, area.getY(), 120, 30);
-    playSelectedButton.setBounds(160, area.getY(), 120, 30);
-    area.removeFromTop(40);
-    playlist.setBounds(area.removeFromTop(200));
+    juce::Array<juce::Button*> buttons = {
+        &loadButton, &playButton, &stopButton, &muteButton,
+        &goStartButton, &goEndButton, &goForwardButton, &gobackButton,
+        &repeatingButton, &setLoopPointsButton, &clearLoopPointsButton
+    };
 
-    // أهو هنا بنبعد المنطقة اللي تحت الأزرار شوية
-    area.removeFromTop(50); // ← زود الرقم لو عايز مسافة أكبر (مثلاً 80)
+    for (auto* btn : buttons)
+    {
+        if (buttonArea.getWidth() < buttonWidth)
+            break;
+        btn->setBounds(buttonArea.removeFromLeft(buttonWidth));
+        buttonArea.removeFromLeft(gap);
+    }
 
-    // ---- Sliders + labels ----
-    int labelWidth = 80;
-    int sliderHeight = 36;
+    area.removeFromTop(10);
 
-    // Volume
-    volumeLabel.setBounds(10, area.getY(), labelWidth, 20);
-    volumeSlider.setBounds(100, area.getY() - 10, getWidth() - 120, sliderHeight);
-    area.removeFromTop(sliderHeight + 30);
+    // --- 3) Playlist ---
+    loadPlaylistButton.setBounds(area.removeFromTop(30).removeFromLeft(120));
+    playSelectedButton.setBounds(140, area.getY() - 30, 120, 30);
+    area.removeFromTop(2);
+    playlist.setBounds(area.removeFromTop(150));
 
-    // Speed
-    speedLabel.setBounds(10, area.getY(), labelWidth, 20);
-    speedSlider.setBounds(100, area.getY() - 10, getWidth() - 120, sliderHeight);
-    area.removeFromTop(sliderHeight + 30);
+    area.removeFromTop(20);
 
-    // Position
+    // --- 4) Sliders ---
+    int labelWidth = 90;
+    int sliderHeight = 30;
+    int spaceBetweenRows = 10;
+
+    auto row1 = area.removeFromTop(sliderHeight);
+    volumeLabel.setBounds(row1.removeFromLeft(labelWidth));
+    volumeSlider.setBounds(row1.removeFromLeft((getWidth() / 2) - labelWidth - 20));
+    speedLabel.setBounds(row1.removeFromLeft(labelWidth));
+    speedSlider.setBounds(row1);
+
+    area.removeFromTop(spaceBetweenRows);
+
+    auto row2 = area.removeFromTop(sliderHeight);
+    loopStartLabel.setBounds(row2.removeFromLeft(labelWidth));
+    loopStartSlider.setBounds(row2.removeFromLeft((getWidth() / 2) - labelWidth - 20));
+    loopEndLabel.setBounds(row2.removeFromLeft(labelWidth));
+    loopEndSlider.setBounds(row2);
+
+    area.removeFromTop(spaceBetweenRows);
+
     positionLabel.setBounds(10, area.getY(), labelWidth, 20);
-    positionSlider.setBounds(100, area.getY() - 10, getWidth() - 120, sliderHeight);
-    area.removeFromTop(sliderHeight + 30);
+    positionSlider.setBounds(100, area.getY() - 5, getWidth() - 120, sliderHeight);
+    area.removeFromTop(sliderHeight + 10);
 
-	//customing loop 
-	loopStartLabel.setBounds(10, area.getY(), labelWidth, 20);
-	loopStartSlider.setBounds(100, area.getY() - 10, getWidth() - 120, sliderHeight);
-    area.removeFromTop(sliderHeight + 30);
-
-	loopEndLabel.setBounds(10, area.getY(), labelWidth, 20);
-	loopEndSlider.setBounds(100, area.getY() - 10, getWidth() - 120, sliderHeight);
-	area.removeFromTop(sliderHeight + 30);
-
-
-    // Metadata label at bottom
     metadataLabel.setBounds(10, getHeight() - 40, getWidth() - 20, 30);
 }
-
 
 void PlayerGUI::buttonClicked(juce::Button* button)
 {
@@ -243,11 +247,14 @@ void PlayerGUI::buttonClicked(juce::Button* button)
                 juce::File file = fc.getResult();
                 if (file.existsAsFile())
                 {
+                    thumbnail.clear();
+                    thumbnail.setSource(new juce::FileInputSource(file));
+                    totalLength = audioPlayer.getLengthInSeconds();
+                    repaint(); 
                     audioPlayer.loadURL(juce::URL{ file });
 
                     if (audioPlayer.isLouded())
                     {
-                        // تحديث السلايدر بناءً على مدة الملف
                         double length = audioPlayer.getLengthInSeconds();
                         positionSlider.setRange(0.0, length);
                         positionSlider.setValue(0.0);
@@ -256,13 +263,11 @@ void PlayerGUI::buttonClicked(juce::Button* button)
                         loopEndSlider.setValue(length);
 
 
-                        // حساب مدة الملف
                         int totalSeconds = (int)length;
                         int minutes = totalSeconds / 60;
                         int seconds = totalSeconds % 60;
                         juce::String duration = juce::String::formatted("Duration: %02d:%02d", minutes, seconds);
 
-                        // محاولة قراءة metadata
                         juce::AudioFormatManager formatManager;
                         formatManager.registerBasicFormats();
                         std::unique_ptr<juce::AudioFormatReader> reader(formatManager.createReaderFor(file));
@@ -280,10 +285,8 @@ void PlayerGUI::buttonClicked(juce::Button* button)
                             info = "File: " + file.getFileName() + "\n";
                         }
 
-                        // دمج المعلومات مع المدة
                         info += duration;
 
-                        // عرضها على اللابل
                         metadataLabel.setText(info, juce::dontSendNotification);
                     }
                 }
@@ -310,27 +313,27 @@ void PlayerGUI::buttonClicked(juce::Button* button)
         audioPlayer.repeat(repeatingButton.getToggleState());
         if (repeatingButton.getToggleState())
         {
-            audioPlayer.setCustomLoopEnabled(false,0,0);
+            audioPlayer.setCustomLoopEnabled(false, 0, 0);
         }
     }
     else if (button == &setLoopPointsButton)
     {
-        
+
         double start = loopStartSlider.getValue();
         double end = loopEndSlider.getValue();
 
         if (start < end)
         {
             audioPlayer.setCustomLoopEnabled(true, start, end);
-            repeatingButton.setToggleState(false, juce::dontSendNotification); 
+            repeatingButton.setToggleState(false, juce::dontSendNotification);
             metadataLabel.setText("Custom Loop: " + juce::String(start, 1) + "s - " + juce::String(end, 1) + "s",
                 juce::dontSendNotification);
         }
     }
     else if (button == &clearLoopPointsButton)
     {
-        
-        audioPlayer.setCustomLoopEnabled(false,0,0);
+
+        audioPlayer.setCustomLoopEnabled(false, 0, 0);
         repeatingButton.setToggleState(false, juce::dontSendNotification);
         metadataLabel.setText("Loop cleared", juce::dontSendNotification);
     }
@@ -366,4 +369,37 @@ void PlayerGUI::sliderValueChanged(juce::Slider* slider)
         }
     }
 }
+void PlayerGUI::drawWaveform(juce::Graphics& g, juce::Rectangle<int> area)
+{
+    g.setColour(juce::Colours::darkgrey);
+    g.fillRect(area);
+
+    if (thumbnail.getNumChannels() == 0)
+    {
+        g.setColour(juce::Colours::white);
+        g.drawFittedText("No waveform loaded", area, juce::Justification::centred, 1);
+        return;
+    }
+
+    // 
+    g.setColour(juce::Colours::skyblue);
+    thumbnail.drawChannels(g, area, 0.0, totalLength, 1.0f);
+
+    // 
+    g.setColour(juce::Colours::red);
+    int playheadX = area.getX() + (int)((currentPosition / totalLength) * area.getWidth());
+    g.drawLine((float)playheadX, (float)area.getY(), (float)playheadX, (float)area.getBottom(), 2.0f);
+}
+void PlayerGUI::mouseDown(const juce::MouseEvent& event)
+{
+    auto area = getLocalBounds().reduced(10).removeFromTop(120);
+    if (area.contains(event.getPosition()))
+    {
+        double clickPosition = (event.x - area.getX()) / (double)area.getWidth();
+        audioPlayer.setPosition(clickPosition * totalLength);
+    }
+}
+
+
+
 
