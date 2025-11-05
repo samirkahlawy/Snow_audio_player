@@ -50,7 +50,14 @@ public:
     double getLoopEndTime() const { return loopEndTime; }
 
     void timerCallback() override;
+
+    juce::String getArtist() const;
+
+
 private:
+
+    juce::String artist;
+
     juce::AudioFormatManager formatManager;
     std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
     juce::AudioTransportSource transportSource;
