@@ -65,6 +65,17 @@ void PlayerAudio::timerCallback()
     }
 }
 
+juce::String PlayerAudio::getArtist() const
+{
+    if (readerSource != nullptr && readerSource->getAudioFormatReader() != nullptr)
+    {
+        auto& metadata = readerSource->getAudioFormatReader()->metadataValues;
+        return metadata.getValue("artist", "Unknown Artist");
+    }
+    return "Unknown Artist";
+}
+
+
 
 void PlayerAudio::loadURL(const juce::URL& audioURL)
 {
@@ -196,7 +207,7 @@ void PlayerAudio::goEnd()
 {
     double len = transportSource.getLengthInSeconds();
     if (len > 0.0)
-        transportSource.setPosition(len-1);
+        transportSource.setPosition(len - 1);
 }
 
 void PlayerAudio::forward10Sec()
@@ -285,12 +296,14 @@ void PlayerAudio::loadFile()
 
                 if (reader != nullptr)
                 {
-                    std::unique_ptr<juce::AudioFormatReaderSource> newSource(new juce::AudioFormatReaderSource(reader, true));
-                    audioTransportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
-                    readerSource.reset(newSource.release());
+                    if (reader->metadataValues.containsKey("artist"))
+                        artist = reader->metadataValues["artist"];
+                    else
+                        artist = "Unknown Artist";
                 }
             }
+            
+
         });
 }
-
 
