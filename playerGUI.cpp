@@ -1,6 +1,6 @@
-﻿#include "PlayerGUI.h"
+#include"playerGUI.h"
 
-PlayerGUI::PlayerGUI(PlayerAudio& player)
+PlayerGUI::PlayerGUI(PlayerAudio & player)
     : audioPlayer(player), playlist(player)
 {
     formatManager.registerBasicFormats();
@@ -11,6 +11,12 @@ PlayerGUI::PlayerGUI(PlayerAudio& player)
     metadataLabel.setJustificationType(juce::Justification::centred);
     metadataLabel.setColour(juce::Label::textColourId, juce::Colours::white);
     addAndMakeVisible(metadataLabel);
+
+    artistLabel.setText("Artist: Unknown", juce::dontSendNotification);
+    artistLabel.setJustificationType(juce::Justification::centred);
+    artistLabel.setColour(juce::Label::textColourId, juce::Colours::white);
+    addAndMakeVisible(artistLabel);
+
 
     volumeLabel.setText("Volume", juce::dontSendNotification);
     speedLabel.setText("Speed", juce::dontSendNotification);
@@ -201,13 +207,18 @@ void PlayerGUI::resized()
     loopEndLabel.setBounds(row2.removeFromLeft(labelWidth));
     loopEndSlider.setBounds(row2);
 
-    area.removeFromTop(spaceBetweenRows);
+    area.removeFromTop(spaceBetweenRows);//audioPlayer.loadURL
 
     positionLabel.setBounds(10, area.getY(), labelWidth, 20);
     positionSlider.setBounds(100, area.getY() - 5, getWidth() - 120, sliderHeight);
     area.removeFromTop(sliderHeight + 10);
 
-    metadataLabel.setBounds(10, getHeight() - 40, getWidth() - 20, 30);
+    int labelHeight = 30;
+    int spacing = 5;
+
+    metadataLabel.setBounds(10, getHeight() - (labelHeight * 2 + spacing + 10), getWidth() - 20, labelHeight);
+    artistLabel.setBounds(10, metadataLabel.getBottom() + spacing, getWidth() - 20, labelHeight);
+
 }
 
 void PlayerGUI::buttonClicked(juce::Button* button)
@@ -249,6 +260,9 @@ void PlayerGUI::buttonClicked(juce::Button* button)
                     totalLength = audioPlayer.getLengthInSeconds();
                     repaint();
                     audioPlayer.loadURL(juce::URL{ file });
+
+                    artistLabel.setText("Artist: " + audioPlayer.getArtist(), juce::dontSendNotification);
+
 
                     if (audioPlayer.isLouded())
                     {
