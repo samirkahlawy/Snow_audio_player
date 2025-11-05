@@ -38,6 +38,7 @@ private:
     juce::TextButton playSelectedButton{ "Play Selected" };
 
     juce::Label metadataLabel;
+    juce::Label artistLabel;
 
     juce::TextButton playButton{ "Play" };
     juce::TextButton stopButton{ "Stop" };
