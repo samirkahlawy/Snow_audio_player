@@ -20,6 +20,8 @@ public:
     void buttonClicked(juce::Button* button) override;
     void sliderValueChanged(juce::Slider* slider) override;
     void mouseDown(const juce::MouseEvent& event);
+    juce::File getCurrentPlayingFile();
+
 
 private:
     juce::AudioFormatManager formatManager;
@@ -47,7 +49,7 @@ private:
     juce::TextButton goStartButton{ "Go Start" };
     juce::TextButton goEndButton{ "Go End" };
     juce::TextButton goForwardButton{ "10s Forward" };
-    juce::TextButton gobackButton{ "10s Fackword" };
+    juce::TextButton gobackButton{ "10s Backword" };
     juce::ToggleButton repeatingButton{ "Repeat all" };
     juce::TextButton setLoopPointsButton{ "Set loop points" };
     juce::TextButton clearLoopPointsButton{ "Clear loop points" };

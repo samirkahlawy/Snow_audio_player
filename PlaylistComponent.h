@@ -33,6 +33,17 @@ public:
 
     void addFileToPlaylist(const juce::File& audioFile);
 
+    int getSelectedRow() const {
+        return table.getSelectedRow();
+    }
+
+    juce::File getSelectedFile() const {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow >= 0 && selectedRow < trackFiles.size())
+            return trackFiles[selectedRow];
+        return juce::File();
+    }
+
 private:
     PlayerAudio& audioPlayer;
     juce::TableListBox table;

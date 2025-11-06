@@ -119,8 +119,24 @@ PlayerGUI::~PlayerGUI()
 
 void PlayerGUI::timerCallback()
 {
+    static bool wasLoaded = false;
+    bool isNowLoaded = audioPlayer.isLouded();
+
+    if (isNowLoaded && !wasLoaded)
+    {
+        double length = audioPlayer.getLengthInSeconds();
+        positionSlider.setRange(0.0, length);
+        loopStartSlider.setRange(0.0, length);
+        loopEndSlider.setRange(0.0, length);
+        loopEndSlider.setValue(length);
+
+    }
+
+    wasLoaded = isNowLoaded;
+
     if (audioPlayer.isLouded() && audioPlayer.isPlaying())
     {
+        
         double currentPos = audioPlayer.getPosition();
 
         positionSlider.setValue(currentPos, juce::dontSendNotification);
@@ -135,6 +151,8 @@ void PlayerGUI::timerCallback()
                 juce::dontSendNotification);
         }
     }
+    
+   
 }
 
 void PlayerGUI::paint(juce::Graphics& g)
@@ -166,8 +184,9 @@ void PlayerGUI::resized()
     auto buttonArea = area.removeFromTop(buttonHeight);
     juce::Array<juce::Button*> buttons = {
         &loadButton, &playButton, &stopButton, &muteButton,
-        &goStartButton, &goEndButton, &goForwardButton, &gobackButton,
+        &goStartButton, &goEndButton,  &gobackButton,& goForwardButton,
         &repeatingButton,&setLoopPointsButton,&clearLoopPointsButton ,&mixButton
+		
     };
 
     for (auto* btn : buttons)
@@ -226,6 +245,7 @@ void PlayerGUI::buttonClicked(juce::Button* button)
     if (button == &playButton)
     {
         audioPlayer.start();
+  
     }
     else if (button == &stopButton)
     {
@@ -246,6 +266,35 @@ void PlayerGUI::buttonClicked(juce::Button* button)
     else if (button == &playSelectedButton)
     {
         playlist.playSelectedTrack();
+
+        juce::Timer::callAfterDelay(200, [this]()
+            {
+                if (audioPlayer.isLouded())
+                {
+                    double length = audioPlayer.getLengthInSeconds();
+                    positionSlider.setRange(0.0, length);
+                    positionSlider.setValue(0.0);
+                    loopStartSlider.setRange(0.0, length);
+                    loopEndSlider.setRange(0.0, length);
+                    loopEndSlider.setValue(length);
+
+                    DBG("Sliders updated for playlist track");
+
+                    juce::File selectedFile = playlist.getSelectedFile();
+                    if (selectedFile.existsAsFile())
+                    {
+                        thumbnail.clear();
+                        thumbnail.setSource(new juce::FileInputSource(selectedFile));
+                        totalLength = length;
+                        repaint();
+
+                        juce::String fileName = selectedFile.getFileName();
+                        metadataLabel.setText("Loaded from playlist: " + fileName, juce::dontSendNotification);
+
+                        DBG("Waveform loaded for: " + fileName);
+                    }
+                }
+            });
     }
     else if (button == &loadButton)
     {
@@ -298,7 +347,10 @@ void PlayerGUI::buttonClicked(juce::Button* button)
                         info += duration;
 
                         metadataLabel.setText(info, juce::dontSendNotification);
+
+                       
                     }
+
                 }
             });
     }
@@ -412,6 +464,17 @@ void PlayerGUI::mouseDown(const juce::MouseEvent& event)
         double clickPosition = (event.x - area.getX()) / (double)area.getWidth();
         audioPlayer.setPosition(clickPosition * totalLength);
     }
+}
+
+
+juce::File PlayerGUI::getCurrentPlayingFile()
+{
+    juce::File playlistFile = playlist.getSelectedFile();
+    if (playlistFile.existsAsFile())
+    {
+        return playlistFile;
+    }
+    return juce::File();
 }
 
 PlayerGUI::MixWindow::MixWindow(PlayerAudio& player, PlaylistComponent& playlistComp)
