@@ -1,4 +1,4 @@
-#  JUCE Audio Player
+#  Snow Audio Player
 
 This project is a **C++ Audio Player Application** built using the **JUCE framework**, developed as part of the **CS213: Object-Oriented Programming Assignment 2** at **Cairo University, Faculty of Computing and Artificial Intelligence**.
 
@@ -174,4 +174,5 @@ transportSource.start(); // begins playback
 ##  License
 
 This project is developed for educational purposes at **Cairo University, Faculty of Computing and AI** under the course **CS213: Object-Oriented Programming**.
+
 
