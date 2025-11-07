@@ -267,7 +267,7 @@ void PlayerGUI::buttonClicked(juce::Button* button)
     {
         playlist.playSelectedTrack();
 
-        juce::Timer::callAfterDelay(200, [this]()
+        juce::Timer::callAfterDelay(5, [this]()
             {
                 if (audioPlayer.isLouded())
                 {
@@ -304,15 +304,9 @@ void PlayerGUI::buttonClicked(juce::Button* button)
                 juce::File file = fc.getResult();
                 if (file.existsAsFile())
                 {
-                    thumbnail.clear();
-                    thumbnail.setSource(new juce::FileInputSource(file));
-                    totalLength = audioPlayer.getLengthInSeconds();
-                    repaint();
                     audioPlayer.loadURL(juce::URL{ file });
 
-                    artistLabel.setText("Artist: " + audioPlayer.getArtist(), juce::dontSendNotification);
-
-
+                    
                     if (audioPlayer.isLouded())
                     {
                         double length = audioPlayer.getLengthInSeconds();
@@ -348,7 +342,12 @@ void PlayerGUI::buttonClicked(juce::Button* button)
 
                         metadataLabel.setText(info, juce::dontSendNotification);
 
-                       
+                        thumbnail.clear();
+                        thumbnail.setSource(new juce::FileInputSource(file));
+                        totalLength = audioPlayer.getLengthInSeconds();
+                        repaint();
+
+                        artistLabel.setText("Artist: " + audioPlayer.getArtist(), juce::dontSendNotification);
                     }
 
                 }
