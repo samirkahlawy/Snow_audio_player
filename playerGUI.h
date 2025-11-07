@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <JuceHeader.h>
 #include "PlayerAudio.h"
 #include "PlaylistComponent.h"
@@ -42,15 +42,15 @@ private:
     juce::Label metadataLabel;
     juce::Label artistLabel;
 
-    juce::TextButton playButton{ "Play" };
-    juce::TextButton stopButton{ "Stop" };
-    juce::TextButton loadButton{ "Load" };
-    juce::TextButton muteButton{ "Mute" };
-    juce::TextButton goStartButton{ "Go Start" };
-    juce::TextButton goEndButton{ "Go End" };
-    juce::TextButton goForwardButton{ "10s Forward" };
-    juce::TextButton gobackButton{ "10s Backword" };
-    juce::ToggleButton repeatingButton{ "Repeat all" };
+    juce::TextButton playButton{ "Play " };
+    juce::TextButton stopButton{ "Stop " };
+    juce::TextButton loadButton{ "Load audio file" };
+    juce::TextButton muteButton{ "Mute " };
+    juce::TextButton goStartButton{ "Go Start " };
+    juce::TextButton goEndButton{ "Go End " };
+    juce::TextButton goForwardButton{ "10s Forward " };
+    juce::TextButton gobackButton{ "10s Backword " };
+    juce::TextButton repeatingButton{ "Repeat track " };
     juce::TextButton setLoopPointsButton{ "Set loop points" };
     juce::TextButton clearLoopPointsButton{ "Clear loop points" };
     juce::TextButton mixButton{ "Mix two tracks" };

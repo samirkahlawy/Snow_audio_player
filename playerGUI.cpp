@@ -185,12 +185,12 @@ void PlayerGUI::resized()
     auto waveformArea = area.removeFromTop(120);
     positionSlider.setBounds(waveformArea);
 
-    area.removeFromTop(10);
+    area.removeFromTop(20); // زيادة المسافة من 10 إلى 20
 
     // --- 2) Sliders above time slider ---
     int labelWidth = 90;
     int sliderHeight = 30;
-    int spaceBetweenRows = 10;
+    int spaceBetweenRows = 15; // زيادة المسافة من 10 إلى 15
 
     // Volume and Speed sliders
     auto row1 = area.removeFromTop(sliderHeight);
@@ -213,11 +213,11 @@ void PlayerGUI::resized()
     // --- 3) Time slider ---
     positionLabel.setBounds(10, area.getY(), labelWidth, 20);
     positionSlider.setBounds(100, area.getY() - 5, getWidth() - 120, sliderHeight);
-    area.removeFromTop(sliderHeight + 10);
+    area.removeFromTop(sliderHeight + 15); // زيادة المسافة من 10 إلى 15
 
     // --- 4) First row of buttons: go start, 10s backword, Play, Stop, 10s forward, go end ---
-    int buttonHeight = 35;
-    int gap = 10;
+    int buttonHeight = 40; 
+    int gap = 15; 
     auto firstButtonRow = area.removeFromTop(buttonHeight);
 
     juce::Array<juce::Button*> firstRowButtons = {
@@ -225,7 +225,6 @@ void PlayerGUI::resized()
         &goForwardButton, &goEndButton
     };
 
-    // Calculate equal width for each button to span the entire row
     int totalGaps = (firstRowButtons.size() - 1) * gap;
     int buttonWidth = (firstButtonRow.getWidth() - totalGaps) / firstRowButtons.size();
 
@@ -250,16 +249,15 @@ void PlayerGUI::resized()
     playButton.setColour(juce::TextButton::buttonColourId, juce::Colour::fromRGB(0, 100, 0));
     stopButton.setColour(juce::TextButton::buttonColourId, juce::Colour::fromRGB(100, 0, 0));
 
-    area.removeFromTop(10);
+    area.removeFromTop(20);    
 
-    // --- 5) Second row: Load + Loop buttons + Mix button ---
     auto secondButtonRow = area.removeFromTop(buttonHeight);
 
+    // --- 5) First row of buttons: Loud audio file, mute, repeat track, set loop points, clear loop points, mix two tracks ---
     juce::Array<juce::Button*> secondRowButtons = {
-        &loadButton, &repeatingButton, &setLoopPointsButton, &clearLoopPointsButton, &mixButton
+        &loadButton, &muteButton, &repeatingButton, &setLoopPointsButton, &clearLoopPointsButton, &mixButton
     };
 
-    // Calculate equal width for each button to span the entire row
     totalGaps = (secondRowButtons.size() - 1) * gap;
     buttonWidth = (secondButtonRow.getWidth() - totalGaps) / secondRowButtons.size();
 
@@ -268,7 +266,6 @@ void PlayerGUI::resized()
         btn->setBounds(secondButtonRow.removeFromLeft(buttonWidth));
         secondButtonRow.removeFromLeft(gap);
 
-        // Apply button colors
         juce::Colour buttonColour = juce::Colour::fromRGB(0, 100, 120);
         juce::Colour buttonTextColour = juce::Colours::white;
         juce::Colour hoverColour = juce::Colour::fromRGB(22, 243, 250);
@@ -280,21 +277,21 @@ void PlayerGUI::resized()
         btn->setColour(juce::ComboBox::outlineColourId, hoverColour);
     }
 
-    area.removeFromTop(20);
+    area.removeFromTop(25); 
 
     // --- 6) Playlist ---
-    loadPlaylistButton.setBounds(area.removeFromTop(30).removeFromLeft(120));
-    playSelectedButton.setBounds(140, area.getY() - 30, 120, 30);
-    area.removeFromTop(2);
-    playlist.setBounds(area.removeFromTop(150));
+    loadPlaylistButton.setBounds(area.removeFromTop(35).removeFromLeft(120)); 
+    playSelectedButton.setBounds(140, area.getY() - 35, 120, 35);
+    area.removeFromTop(10); 
+    playlist.setBounds(area.removeFromTop(180)); 
 
-    area.removeFromTop(20);
+    area.removeFromTop(25); 
 
     // --- 7) Metadata labels ---
-    int labelHeight = 30;
-    int spacing = 5;
+    int labelHeight = 35; 
+    int spacing = 10; 
 
-    metadataLabel.setBounds(10, getHeight() - (labelHeight * 2 + spacing + 10), getWidth() - 20, labelHeight);
+    metadataLabel.setBounds(10, getHeight() - (labelHeight * 2 + spacing + 15), getWidth() - 20, labelHeight);
     artistLabel.setBounds(10, metadataLabel.getBottom() + spacing, getWidth() - 20, labelHeight);
 }
 
@@ -416,7 +413,7 @@ void PlayerGUI::buttonClicked(juce::Button* button)
         static bool isMute = false;
         isMute = !isMute;
         audioPlayer.setMute(isMute);
-        muteButton.setButtonText(isMute ? "Unmute" : "Mute");
+        muteButton.setButtonText(isMute ? "Unmute " : "Mute ");
     }
     else if (button == &goStartButton)
     {
@@ -428,12 +425,22 @@ void PlayerGUI::buttonClicked(juce::Button* button)
     }
     else if (button == &repeatingButton)
     {
-        audioPlayer.repeat(repeatingButton.getToggleState());
-        if (repeatingButton.getToggleState())
+        static bool isRepeating = false;
+        isRepeating = !isRepeating;
+        audioPlayer.repeat(isRepeating);
+
+        if (isRepeating)
         {
             audioPlayer.setCustomLoopEnabled(false, 0, 0);
+            repeatingButton.setButtonText("Repeat: ON");
+            repeatingButton.setColour(juce::TextButton::buttonColourId, juce::Colour::fromRGB(0, 150, 0));
         }
-    }
+        else
+        {
+            repeatingButton.setButtonText("Repeat track ");
+            repeatingButton.setColour(juce::TextButton::buttonColourId, juce::Colour::fromRGB(0, 100, 120));
+        }
+}
     else if (button == &setLoopPointsButton)
     {
         double start = loopStartSlider.getValue();
@@ -442,7 +449,9 @@ void PlayerGUI::buttonClicked(juce::Button* button)
         if (start < end)
         {
             audioPlayer.setCustomLoopEnabled(true, start, end);
-            repeatingButton.setToggleState(false, juce::dontSendNotification);
+            // إعادة تعيين زر repeat
+            repeatingButton.setButtonText("Repeat all");
+            repeatingButton.setColour(juce::TextButton::buttonColourId, juce::Colour::fromRGB(0, 100, 120));
             metadataLabel.setText("Custom Loop: " + juce::String(start, 1) + "s - " + juce::String(end, 1) + "s",
                 juce::dontSendNotification);
         }
