@@ -181,66 +181,18 @@ void PlayerGUI::resized()
 {
     auto area = getLocalBounds().reduced(15);
 
-    // --- 1)  Waveform ---
+    // --- 1) Waveform ---
     auto waveformArea = area.removeFromTop(120);
     positionSlider.setBounds(waveformArea);
 
-    // --- 2) buttons row---
-    int buttonHeight = 35;
-    int buttonWidth = 80;
-    int gap = 7;
-    auto buttonArea = area.removeFromTop(buttonHeight);
-    juce::Array<juce::Button*> buttons = {
-        &loadButton, &playButton, &stopButton, &muteButton,
-        &goStartButton, &goEndButton,  &gobackButton,& goForwardButton,
-        &repeatingButton,&setLoopPointsButton,&clearLoopPointsButton ,&mixButton
-		
-    };
-
-    for (auto* btn : buttons)
-    {
-        if (buttonArea.getWidth() < buttonWidth)
-            break;
-        btn->setBounds(buttonArea.removeFromLeft(buttonWidth));
-        buttonArea.removeFromLeft(gap);
-
-        juce::Colour buttonColour = juce::Colour::fromRGB(0, 100, 120); // أزرق متوسط
-        juce::Colour buttonTextColour = juce::Colours::white;
-        juce::Colour hoverColour = juce::Colour::fromRGB(22, 243, 250); // فيروزي فاتح
-
-        // لون الخلفية العادي
-        btn->setColour(juce::TextButton::buttonColourId, buttonColour);
-
-        // لون الخلفية عند الضغط
-        btn->setColour(juce::TextButton::buttonOnColourId, hoverColour);
-
-        // لون النص
-        btn->setColour(juce::TextButton::textColourOnId, buttonTextColour);
-        btn->setColour(juce::TextButton::textColourOffId, buttonTextColour);
-
-        // لون عند المرور بالمؤشر
-        btn->setColour(juce::ComboBox::outlineColourId, hoverColour);
-    }
-    // تخصيص ألوان إضافية لأزرار خاصة
-    playButton.setColour(juce::TextButton::buttonColourId, juce::Colour::fromRGB(0, 100, 0)); // أخضر للتشغيل
-    stopButton.setColour(juce::TextButton::buttonColourId, juce::Colour::fromRGB(100, 0, 0)); // أحمر للإيقاف
-
-
     area.removeFromTop(10);
 
-    // --- 3) Playlist ---
-    loadPlaylistButton.setBounds(area.removeFromTop(30).removeFromLeft(120));
-    playSelectedButton.setBounds(140, area.getY() - 30, 120, 30);
-    area.removeFromTop(2);
-    playlist.setBounds(area.removeFromTop(150));
-
-    area.removeFromTop(20);
-
-    // --- 4) Sliders ---
+    // --- 2) Sliders above time slider ---
     int labelWidth = 90;
     int sliderHeight = 30;
     int spaceBetweenRows = 10;
 
+    // Volume and Speed sliders
     auto row1 = area.removeFromTop(sliderHeight);
     volumeLabel.setBounds(row1.removeFromLeft(labelWidth));
     volumeSlider.setBounds(row1.removeFromLeft((getWidth() / 2) - labelWidth - 20));
@@ -249,24 +201,101 @@ void PlayerGUI::resized()
 
     area.removeFromTop(spaceBetweenRows);
 
+    // Loop Start and Loop End sliders
     auto row2 = area.removeFromTop(sliderHeight);
     loopStartLabel.setBounds(row2.removeFromLeft(labelWidth));
     loopStartSlider.setBounds(row2.removeFromLeft((getWidth() / 2) - labelWidth - 20));
     loopEndLabel.setBounds(row2.removeFromLeft(labelWidth));
     loopEndSlider.setBounds(row2);
 
-    area.removeFromTop(spaceBetweenRows);//audioPlayer.loadURL
+    area.removeFromTop(spaceBetweenRows);
 
+    // --- 3) Time slider ---
     positionLabel.setBounds(10, area.getY(), labelWidth, 20);
     positionSlider.setBounds(100, area.getY() - 5, getWidth() - 120, sliderHeight);
     area.removeFromTop(sliderHeight + 10);
 
+    // --- 4) First row of buttons: go start, 10s backword, Play, Stop, 10s forward, go end ---
+    int buttonHeight = 35;
+    int gap = 10;
+    auto firstButtonRow = area.removeFromTop(buttonHeight);
+
+    juce::Array<juce::Button*> firstRowButtons = {
+        &goStartButton, &gobackButton, &playButton, &stopButton,
+        &goForwardButton, &goEndButton
+    };
+
+    // Calculate equal width for each button to span the entire row
+    int totalGaps = (firstRowButtons.size() - 1) * gap;
+    int buttonWidth = (firstButtonRow.getWidth() - totalGaps) / firstRowButtons.size();
+
+    for (auto* btn : firstRowButtons)
+    {
+        btn->setBounds(firstButtonRow.removeFromLeft(buttonWidth));
+        firstButtonRow.removeFromLeft(gap);
+
+        // Apply button colors
+        juce::Colour buttonColour = juce::Colour::fromRGB(0, 100, 120);
+        juce::Colour buttonTextColour = juce::Colours::white;
+        juce::Colour hoverColour = juce::Colour::fromRGB(22, 243, 250);
+
+        btn->setColour(juce::TextButton::buttonColourId, buttonColour);
+        btn->setColour(juce::TextButton::buttonOnColourId, hoverColour);
+        btn->setColour(juce::TextButton::textColourOnId, buttonTextColour);
+        btn->setColour(juce::TextButton::textColourOffId, buttonTextColour);
+        btn->setColour(juce::ComboBox::outlineColourId, hoverColour);
+    }
+
+    // Special colors for play and stop buttons
+    playButton.setColour(juce::TextButton::buttonColourId, juce::Colour::fromRGB(0, 100, 0));
+    stopButton.setColour(juce::TextButton::buttonColourId, juce::Colour::fromRGB(100, 0, 0));
+
+    area.removeFromTop(10);
+
+    // --- 5) Second row: Load + Loop buttons + Mix button ---
+    auto secondButtonRow = area.removeFromTop(buttonHeight);
+
+    juce::Array<juce::Button*> secondRowButtons = {
+        &loadButton, &repeatingButton, &setLoopPointsButton, &clearLoopPointsButton, &mixButton
+    };
+
+    // Calculate equal width for each button to span the entire row
+    totalGaps = (secondRowButtons.size() - 1) * gap;
+    buttonWidth = (secondButtonRow.getWidth() - totalGaps) / secondRowButtons.size();
+
+    for (auto* btn : secondRowButtons)
+    {
+        btn->setBounds(secondButtonRow.removeFromLeft(buttonWidth));
+        secondButtonRow.removeFromLeft(gap);
+
+        // Apply button colors
+        juce::Colour buttonColour = juce::Colour::fromRGB(0, 100, 120);
+        juce::Colour buttonTextColour = juce::Colours::white;
+        juce::Colour hoverColour = juce::Colour::fromRGB(22, 243, 250);
+
+        btn->setColour(juce::TextButton::buttonColourId, buttonColour);
+        btn->setColour(juce::TextButton::buttonOnColourId, hoverColour);
+        btn->setColour(juce::TextButton::textColourOnId, buttonTextColour);
+        btn->setColour(juce::TextButton::textColourOffId, buttonTextColour);
+        btn->setColour(juce::ComboBox::outlineColourId, hoverColour);
+    }
+
+    area.removeFromTop(20);
+
+    // --- 6) Playlist ---
+    loadPlaylistButton.setBounds(area.removeFromTop(30).removeFromLeft(120));
+    playSelectedButton.setBounds(140, area.getY() - 30, 120, 30);
+    area.removeFromTop(2);
+    playlist.setBounds(area.removeFromTop(150));
+
+    area.removeFromTop(20);
+
+    // --- 7) Metadata labels ---
     int labelHeight = 30;
     int spacing = 5;
 
     metadataLabel.setBounds(10, getHeight() - (labelHeight * 2 + spacing + 10), getWidth() - 20, labelHeight);
     artistLabel.setBounds(10, metadataLabel.getBottom() + spacing, getWidth() - 20, labelHeight);
-
 }
 
 void PlayerGUI::buttonClicked(juce::Button* button)

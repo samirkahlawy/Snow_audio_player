@@ -207,7 +207,7 @@ void PlayerAudio::goEnd()
 {
     double len = transportSource.getLengthInSeconds();
     if (len > 0.0)
-        transportSource.setPosition(len - 1);
+        transportSource.setPosition(len - 0.05);
 }
 
 void PlayerAudio::forward10Sec()
