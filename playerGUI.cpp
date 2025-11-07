@@ -86,8 +86,8 @@ PlayerGUI::PlayerGUI(PlayerAudio & player)
 
 
     // Slider ranges / defaults
-    volumeSlider.setRange(0.0, 1.0);
-    volumeSlider.setValue(0.5);
+    volumeSlider.setRange(0.0, 2.0);
+    volumeSlider.setValue(1.0);
     speedSlider.setRange(0.5, 2.0);
     speedSlider.setValue(1.0);
     loopStartSlider.setRange(0.0, 10.0);
@@ -157,10 +157,12 @@ void PlayerGUI::timerCallback()
 
 void PlayerGUI::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colours::lightslategrey);
+    juce::Colour c1 = juce::Colour::fromRGB(0, 25, 30);
+    juce::Colour c2 = juce::Colour::fromRGB(22, 243, 250);
 
-    auto bounds = getLocalBounds();
-    auto sliderArea = positionSlider.getBounds();
+    juce::ColourGradient bg(c1, 0, 0, c2, getWidth(), getHeight(), false);
+    g.setGradientFill(bg);
+    g.fillAll();
 
     g.setColour(juce::Colours::whitesmoke);
     g.setFont(14.0f);
