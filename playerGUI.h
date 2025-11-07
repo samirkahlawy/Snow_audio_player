@@ -104,6 +104,9 @@ private:
         void performMixing();
 
         std::unique_ptr<juce::FileChooser> fileChooser;
+
+
+        juce::Image PlayButton;
     };
     std::unique_ptr<MixWindow> mixWindow;
 };

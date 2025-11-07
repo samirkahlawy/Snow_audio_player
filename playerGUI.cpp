@@ -1,4 +1,4 @@
-#include"playerGUI.h"
+﻿#include"playerGUI.h"
 
 PlayerGUI::PlayerGUI(PlayerAudio & player)
     : audioPlayer(player), playlist(player)
@@ -95,6 +95,9 @@ PlayerGUI::PlayerGUI(PlayerAudio & player)
 
     // start timer (interval in ms)
     startTimer(10);
+
+   
+
 }
 
 PlayerGUI::~PlayerGUI()
@@ -157,8 +160,8 @@ void PlayerGUI::timerCallback()
 
 void PlayerGUI::paint(juce::Graphics& g)
 {
+    juce::Colour c2 = juce::Colour::fromRGB(11, 122, 145);
     juce::Colour c1 = juce::Colour::fromRGB(0, 25, 30);
-    juce::Colour c2 = juce::Colour::fromRGB(22, 243, 250);
 
     juce::ColourGradient bg(c1, 0, 0, c2, getWidth(), getHeight(), false);
     g.setGradientFill(bg);
@@ -169,6 +172,9 @@ void PlayerGUI::paint(juce::Graphics& g)
     auto area = getLocalBounds().reduced(10);
     auto waveformArea = area.removeFromTop(120);
     drawWaveform(g, waveformArea);
+
+    
+
 }
 
 void PlayerGUI::resized()
@@ -197,7 +203,28 @@ void PlayerGUI::resized()
             break;
         btn->setBounds(buttonArea.removeFromLeft(buttonWidth));
         buttonArea.removeFromLeft(gap);
+
+        juce::Colour buttonColour = juce::Colour::fromRGB(0, 100, 120); // أزرق متوسط
+        juce::Colour buttonTextColour = juce::Colours::white;
+        juce::Colour hoverColour = juce::Colour::fromRGB(22, 243, 250); // فيروزي فاتح
+
+        // لون الخلفية العادي
+        btn->setColour(juce::TextButton::buttonColourId, buttonColour);
+
+        // لون الخلفية عند الضغط
+        btn->setColour(juce::TextButton::buttonOnColourId, hoverColour);
+
+        // لون النص
+        btn->setColour(juce::TextButton::textColourOnId, buttonTextColour);
+        btn->setColour(juce::TextButton::textColourOffId, buttonTextColour);
+
+        // لون عند المرور بالمؤشر
+        btn->setColour(juce::ComboBox::outlineColourId, hoverColour);
     }
+    // تخصيص ألوان إضافية لأزرار خاصة
+    playButton.setColour(juce::TextButton::buttonColourId, juce::Colour::fromRGB(0, 100, 0)); // أخضر للتشغيل
+    stopButton.setColour(juce::TextButton::buttonColourId, juce::Colour::fromRGB(100, 0, 0)); // أحمر للإيقاف
+
 
     area.removeFromTop(10);
 
