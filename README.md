@@ -5,7 +5,11 @@ This project is a **C++ Audio Player Application** built using the **JUCE framew
 The project demonstrates **modular design**, **object-oriented programming principles**, and **event-driven programming** using JUCE’s high-level abstractions for GUI and audio processing.
 
 ---
+videa demo
+<br>
+https://drive.google.com/file/d/1_0i_y0IfCWUiU-UUHa18vu7zEgsk6-4v/view?usp=sharing
 
+---
 ##  Overview
 
 The JUCE Audio Player is capable of:
@@ -86,29 +90,6 @@ Using **Projucer**:
 
 ---
 
-##  Project Structure
-
-```
-JUCE-AudioPlayer/
-│
-├── Source/
-│   ├── Main.cpp
-│   ├── MainComponent.h / .cpp
-│   ├── PlayerGUI.h / .cpp
-│   ├── PlayerAudio.h / .cpp
-│
-├── Resources/
-│   ├── icons/
-│   ├── audio_samples/
-│
-├── Builds/
-│   ├── VisualStudio2022/
-│
-└── README.md
-```
-
----
-
 ##  Development Workflow (GitHub)
 
 Each team member should work on their assigned features **in separate branches** and then merge changes to the `main` branch after testing.
@@ -118,19 +99,6 @@ Each team member should work on their assigned features **in separate branches**
 | **Samir** | Tasks 2, 5, 8  |
 | ** Abdalrhman**   | Tasks 3, 6, 9  |
 | **Abdallah**  | Tasks 4, 7, 10 |
-
-### Git Workflow Example
-
-```bash
-git clone https://github.com/yourusername/JUCE-AudioPlayer.git
-git checkout -b feature/pause-button
-# make your changes
-git add .
-git commit -m "Added pause/play functionality"
-git push origin feature/pause-button
-# create pull request and merge
-```
-
 ---
 
 ##  Example: Audio Flow in Code
