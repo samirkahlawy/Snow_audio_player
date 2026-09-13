@@ -35,7 +35,7 @@ The project was also an opportunity to apply **OOP, event-driven programming, GU
 
 | #  | Feature                                    | Difficulty         | Implemented By |
 | -- | ------------------------------------------ | ------------------ | -------------- |
-| 1  | Load, restart, and stop audio              | Easy               | **Team Work**  |
+| 1  | Load, restart, and stop audio              | Easy               | **Samir**  |
 | 2  | Pause / Play                               | Easy               | **Samir**      |
 | 3  | Mute / Unmute                              | Easy               | **Abdalrhman** |
 | 4  | Continuous looping (Repeat)                | Easy               | **Abdallah**   |
@@ -152,6 +152,7 @@ This project was developed collaboratively as a university team project.
 
 Worked on:
 
+* Load, restart, and stop audio  
 * Pause / Play functionality
 * Audio metadata display
 * Playback speed control
@@ -179,30 +180,6 @@ Worked on:
 The initial audio loading, restarting, and stopping functionality was developed through **teamwork**.
 
 The project also involved collaboration through **GitHub** during development and integration.
-
----
-
-## 📸 Screenshots
-
-### Main Player
-
-*Add a screenshot of the main player interface here.*
-
-### Waveform & Playback Controls
-
-*Add a screenshot showing the waveform, playback controls, and position slider here.*
-
-### Playlist / Mix Window
-
-*Add a screenshot showing the playlist or Mix Tracks interface here.*
-
----
-
-## 🎥 Demo
-
-A demonstration of the application is available here:
-
-[Watch the Demo](https://drive.google.com/file/d/1_0i_y0IfCWUiU-UUHa18vu7zEgsk6-4v/view?usp=sharing)
 
 ---
 
